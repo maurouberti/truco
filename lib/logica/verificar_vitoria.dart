@@ -24,7 +24,7 @@ class VerificarVitoria {
       vitoriaJogador = primeira;
     } else if (terceira == 0) {
       // Se empatar na terceira rodada, quem ganhou a primeira vence a mão');
-      vitoriaJogador = segunda;
+      vitoriaJogador = primeira;
     } else if ((primeira == 1 || primeira == 2) && primeira == segunda) {
       // Vitória em duas rodadas');
       vitoriaJogador = segunda;
