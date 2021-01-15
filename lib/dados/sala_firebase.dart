@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:truco/dados/cartas_jogador_firebase.dart';
 import 'package:truco/dados/rodada_firebase.dart';
 import 'package:truco/dados/carta_firebase.dart';
 
-class SalaFirebase with ChangeNotifier {
+class SalaFirebase {
   DocumentReference reference;
   String nomeSala;
   String jogador1;

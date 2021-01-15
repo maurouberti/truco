@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:soundpool/soundpool.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:truco/dados/carta_firebase.dart';
@@ -17,6 +19,8 @@ import 'package:truco/logica/definir_status_rodada.dart';
 import 'package:truco/logica/definir_vez.dart';
 import 'package:truco/logica/verificar_vitoria.dart';
 import 'package:truco/logica/trucar.dart';
+
+Soundpool _soundpool;
 
 class JogoPage extends StatefulWidget {
   final String salaId;
@@ -46,6 +50,7 @@ class _JogoPageState extends State<JogoPage> {
         sala.salvar();
       }
     });
+    _initSounds();
   }
 
   @override
@@ -65,9 +70,73 @@ class _JogoPageState extends State<JogoPage> {
         sala.salvar();
       }
     });
+    //_disposePool();
   }
 
+  // sons //
+  Future<int> _soundJogarCarta;
+
+  Future<void> _initSounds() async {
+    _soundpool ??= Soundpool();
+    _soundJogarCarta = _loadSoundJogarCarta();
+  }
+
+  Future<void> _disposePool() async {
+    _soundpool.dispose();
+  }
+
+  Future<int> _loadSoundJogarCarta() async {
+    var asset = await rootBundle.load("assets/sound/jogarCarta.mp3");
+    return await _soundpool.load(asset);
+  }
+
+  Future<void> _playJogarCarta() async {
+    var _alarmSound = await _soundJogarCarta;
+    await _soundpool.play(_alarmSound);
+  }
+
+  _playIniciar() async {
+    int soundId = await rootBundle
+        .load("assets/sound/iniciarPartida.mp3")
+        .then((ByteData soundData) {
+      return _soundpool.load(soundData);
+    });
+    await _soundpool.play(soundId);
+  }
+
+  _playTrucar() async {
+    int soundId = await rootBundle
+        .load("assets/sound/trucar.mp3")
+        .then((ByteData soundData) {
+      return _soundpool.load(soundData);
+    });
+    await _soundpool.play(soundId);
+  }
+
+  _playVitoria() async {
+    int soundId = await rootBundle
+        .load("assets/sound/vitoria.mp3")
+        .then((ByteData soundData) {
+      return _soundpool.load(soundData);
+    });
+    await _soundpool.play(soundId);
+  }
+
+  _playDerrota() async {
+    int soundId = await rootBundle
+        .load("assets/sound/derrota.mp3")
+        .then((ByteData soundData) {
+      return _soundpool.load(soundData);
+    });
+    await _soundpool.play(soundId);
+  }
+
+  // partida //
+  bool _flagTrucar = true;
+  bool _flagFinalPartida = true;
+
   void _iniciarPartida(SalaFirebase sala) {
+    _flagFinalPartida = false;
     setState(() {
       IniciarPartida.exec(sala);
       // Mão de onze TRUCAR
@@ -77,6 +146,7 @@ class _JogoPageState extends State<JogoPage> {
         Trucar.exec(jogadorTrucar, sala);
       }
       sala.salvar();
+      _playIniciar();
     });
   }
 
@@ -85,6 +155,8 @@ class _JogoPageState extends State<JogoPage> {
     SalaFirebase sala,
     CartaFirebase carta,
   ) {
+    _flagTrucar = true;
+    _flagFinalPartida = true;
     setState(() {
       RodadaFirebase rodada = Jogada.exec(uuid, sala, carta);
       if (rodada != null) {
@@ -95,6 +167,7 @@ class _JogoPageState extends State<JogoPage> {
         }
         sala.salvar();
       }
+      _playJogarCarta();
     });
   }
 
@@ -102,6 +175,8 @@ class _JogoPageState extends State<JogoPage> {
     String uuid,
     SalaFirebase sala,
   ) {
+    _flagTrucar = true;
+    _flagFinalPartida = true;
     setState(() {
       int jogadorTrucar = sala.jogador1 == uuid ? 1 : 2;
       Trucar.exec(jogadorTrucar, sala);
@@ -113,6 +188,8 @@ class _JogoPageState extends State<JogoPage> {
     String uuid,
     SalaFirebase sala,
   ) {
+    _flagTrucar = false;
+    _flagFinalPartida = true;
     setState(() {
       Trucar.aceitar(uuid, sala);
       sala.salvar();
@@ -123,6 +200,8 @@ class _JogoPageState extends State<JogoPage> {
     String uuid,
     SalaFirebase sala,
   ) {
+    _flagTrucar = true;
+    _flagFinalPartida = true;
     setState(() {
       int jogadorTrucar = sala.jogador1 == uuid ? 1 : 2;
       Trucar.exec(jogadorTrucar, sala);
@@ -134,6 +213,8 @@ class _JogoPageState extends State<JogoPage> {
     String uuid,
     SalaFirebase sala,
   ) {
+    _flagTrucar = false;
+    _flagFinalPartida = true;
     setState(() {
       Trucar.desistir(uuid, sala);
       sala.salvar();
@@ -159,6 +240,21 @@ class _JogoPageState extends State<JogoPage> {
         int vitorias = uuid == salaX.jogador1
             ? salaX.vitoriasJogador1
             : salaX.vitoriasJogador2;
+
+        // sons
+        if (_flagTrucar && trucar) {
+          _playTrucar();
+        }
+
+        if (_flagFinalPartida) {
+          if ((salaX.jogador1 == uuid && salaX.vitoria == 1) ||
+              (salaX.jogador2 == uuid && salaX.vitoria == 2)) {
+            _playVitoria();
+          } else if ((salaX.jogador1 == uuid && salaX.vitoria == 2) ||
+              (salaX.jogador2 == uuid && salaX.vitoria == 1)) {
+            _playDerrota();
+          }
+        }
 
         return Scaffold(
           appBar: AppBar(

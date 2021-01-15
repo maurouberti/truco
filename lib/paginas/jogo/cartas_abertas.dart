@@ -33,9 +33,9 @@ class _CartasAbertasState extends State<CartasAbertas> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           InkWell(
-            onTap: () {
-              widget.jogarCarta(widget.uuid, widget.sala, jogador.carta1);
-            },
+            onTap: () => widget.sala.trucar != null
+                ? null
+                : widget.jogarCarta(widget.uuid, widget.sala, jogador.carta1),
             child: Image.asset(
               carta1,
               width: 90,
@@ -44,9 +44,9 @@ class _CartasAbertasState extends State<CartasAbertas> {
             ),
           ),
           InkWell(
-            onTap: () {
-              widget.jogarCarta(widget.uuid, widget.sala, jogador.carta2);
-            },
+            onTap: () => widget.sala.trucar != null
+                ? null
+                : widget.jogarCarta(widget.uuid, widget.sala, jogador.carta2),
             child: Image.asset(
               carta2,
               width: 90,
@@ -55,9 +55,9 @@ class _CartasAbertasState extends State<CartasAbertas> {
             ),
           ),
           InkWell(
-            onTap: () {
-              widget.jogarCarta(widget.uuid, widget.sala, jogador.carta3);
-            },
+            onTap: () => widget.sala.trucar != null
+                ? null
+                : widget.jogarCarta(widget.uuid, widget.sala, jogador.carta3),
             child: Image.asset(
               carta3,
               width: 90,
